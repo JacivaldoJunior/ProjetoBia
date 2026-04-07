@@ -1,0 +1,1951 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#e91e8c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Bia" />
+  <title>Bia ✨ - Assistente Pessoal</title>
+  <link rel="manifest" href="/manifest.json" />
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #e91e8c;
+      --primary-dark: #b01570;
+      --secondary: #7c3aed;
+      --bg: #0f0f1a;
+      --surface: #1a1a2e;
+      --surface2: #16213e;
+      --surface3: #0d1b2a;
+      --text: #f0f0f0;
+      --text-muted: #9999bb;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 4px 24px rgba(233,30,140,0.15);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      max-width: 430px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* HEADER */
+    .app-header {
+      background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
+      padding: 20px 20px 16px;
+      padding-top: calc(20px + env(safe-area-inset-top));
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .header-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 20px rgba(233,30,140,0.4);
+    }
+
+    .header-info h1 {
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #fff, var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-info p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    .btn-icon:hover { background: rgba(255,255,255,0.15); }
+
+    /* DAILY PROGRESS CARD */
+    .daily-card {
+      margin: 16px;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      border-radius: var(--radius);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .daily-card::before {
+      content: '';
+      position: absolute;
+      right: -20px; top: -20px;
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .daily-card h3 { font-size: 13px; opacity: 0.85; margin-bottom: 4px; }
+    .daily-card .progress-text { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+
+    .progress-bar {
+      background: rgba(255,255,255,0.25);
+      border-radius: 99px;
+      height: 8px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: white;
+      border-radius: 99px;
+      transition: width 0.6s cubic-bezier(.4,0,.2,1);
+    }
+
+    .progress-subtitle { font-size: 12px; opacity: 0.8; margin-top: 6px; }
+
+    /* STATS ROW */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 0 16px 16px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .stat-card .stat-icon { font-size: 20px; margin-bottom: 4px; }
+    .stat-card .stat-number { font-size: 20px; font-weight: 700; color: var(--primary); }
+    .stat-card .stat-label { font-size: 11px; color: var(--text-muted); }
+
+    /* QUICK ACTIONS */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 0 16px 20px;
+    }
+
+    .quick-btn {
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius-sm);
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .quick-btn:hover, .quick-btn:active {
+      background: rgba(233,30,140,0.15);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .quick-btn .qb-icon { font-size: 22px; }
+    .quick-btn .qb-label { font-size: 11px; color: var(--text-muted); text-align: center; }
+
+    /* SECTION */
+    .section { margin: 0 16px 20px; }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .section-title { font-size: 15px; font-weight: 600; }
+    .btn-add {
+      background: var(--primary);
+      border: none;
+      border-radius: 20px;
+      padding: 6px 14px;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-add:hover { background: var(--primary-dark); }
+
+    /* TASK ITEM */
+    .task-item {
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: all 0.2s;
+    }
+
+    .task-item:hover { border-color: rgba(233,30,140,0.3); }
+
+    .task-check {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.2);
+      background: transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .task-check.done {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    .task-body { flex: 1; min-width: 0; }
+    .task-title { font-size: 14px; font-weight: 500; }
+    .task-title.done { text-decoration: line-through; opacity: 0.5; }
+    .task-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .task-priority {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .priority-alta { background: rgba(239,68,68,0.2); color: #ef4444; }
+    .priority-media { background: rgba(245,158,11,0.2); color: #f59e0b; }
+    .priority-baixa { background: rgba(34,197,94,0.2); color: #22c55e; }
+
+    .task-actions { display: flex; gap: 6px; }
+    .task-action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+      padding: 2px;
+    }
+    .task-action-btn:hover { opacity: 1; }
+
+    /* EXPENSE ITEM */
+    .expense-item {
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .expense-icon {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: rgba(233,30,140,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .expense-body { flex: 1; }
+    .expense-name { font-size: 14px; font-weight: 500; }
+    .expense-cat { font-size: 11px; color: var(--text-muted); }
+    .expense-amount { font-size: 16px; font-weight: 700; color: var(--danger); }
+    .expense-amount.income { color: var(--success); }
+
+    /* GOAL ITEM */
+    .goal-item {
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .goal-name { font-size: 14px; font-weight: 500; }
+    .goal-percent { font-size: 13px; font-weight: 700; color: var(--primary); }
+    .goal-bar {
+      background: rgba(255,255,255,0.1);
+      border-radius: 99px;
+      height: 6px;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+    .goal-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      border-radius: 99px;
+      transition: width 0.6s ease;
+    }
+    .goal-values { font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; }
+
+    /* EVENT ITEM */
+    .event-item {
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      margin-bottom: 8px;
+      border-left: 3px solid var(--primary);
+      display: flex;
+      gap: 12px;
+    }
+
+    .event-time { font-size: 12px; color: var(--text-muted); white-space: nowrap; text-align: center; min-width: 44px; }
+    .event-time .time { font-size: 15px; font-weight: 700; color: var(--text); }
+    .event-body { flex: 1; }
+    .event-title { font-size: 14px; font-weight: 500; }
+    .event-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .event-alert { font-size: 11px; color: var(--warning); margin-top: 4px; }
+
+    /* BOTTOM NAV */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      background: var(--surface);
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 10px 0;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom));
+      display: flex;
+      justify-content: space-around;
+      z-index: 100;
+    }
+
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 16px;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s;
+      color: var(--text-muted);
+      min-width: 60px;
+    }
+
+    .nav-btn.active { color: var(--primary); }
+    .nav-btn .nav-icon { font-size: 22px; }
+    .nav-btn .nav-label { font-size: 10px; font-weight: 500; }
+    .nav-btn .nav-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--primary);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .nav-btn.active .nav-dot { opacity: 1; }
+
+    /* PAGES */
+    .page { display: none; padding-bottom: 100px; }
+    .page.active { display: block; }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 200;
+      display: flex;
+      align-items: flex-end;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: var(--surface2);
+      border-radius: 24px 24px 0 0;
+      padding: 24px;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+      width: 100%;
+      max-width: 430px;
+      margin: 0 auto;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.open .modal { transform: translateY(0); }
+
+    .modal-handle {
+      width: 36px; height: 4px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 99px;
+      margin: 0 auto 20px;
+    }
+
+    .modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-label { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .form-textarea { resize: vertical; min-height: 80px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: opacity 0.2s;
+    }
+
+    .btn-primary:hover { opacity: 0.9; }
+
+    .btn-secondary {
+      width: 100%;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      color: var(--text-muted);
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    /* BIA MESSAGE */
+    .bia-msg {
+      margin: 0 16px 16px;
+      background: linear-gradient(135deg, rgba(233,30,140,0.1), rgba(124,58,237,0.1));
+      border: 1px solid rgba(233,30,140,0.2);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .bia-msg .bia-face { font-size: 24px; }
+    .bia-msg .bia-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+    .bia-msg .bia-text strong { color: var(--primary); }
+
+    /* MONTH SUMMARY */
+    .month-summary {
+      margin: 0 16px 16px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+
+    .month-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    .month-item { text-align: center; }
+    .month-item .mi-label { font-size: 11px; color: var(--text-muted); }
+    .month-item .mi-value { font-size: 18px; font-weight: 700; }
+    .mi-income { color: var(--success); }
+    .mi-expense { color: var(--danger); }
+    .mi-balance { color: var(--primary); }
+
+    .savings-bar-wrap { margin-top: 10px; }
+    .savings-bar-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; display: flex; justify-content: space-between; }
+    .savings-bar { background: rgba(255,255,255,0.08); border-radius: 99px; height: 8px; }
+    .savings-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--success), #16a34a); transition: width 0.6s ease; }
+
+    /* TAG */
+    .tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(233,30,140,0.15);
+      color: var(--primary);
+    }
+
+    /* NOTIFICATION TOAST */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: var(--surface2);
+      border: 1px solid rgba(233,30,140,0.3);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      z-index: 300;
+      transition: transform 0.4s cubic-bezier(.4,0,.2,1);
+      min-width: 280px;
+      max-width: 360px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(calc(env(safe-area-inset-top) + 10px)); }
+    .toast-icon { font-size: 24px; }
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 13px; font-weight: 700; }
+    .toast-msg { font-size: 12px; color: var(--text-muted); }
+
+    /* EMPTY STATE */
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .empty-state .es-icon { font-size: 48px; margin-bottom: 10px; }
+    .empty-state p { font-size: 14px; }
+
+    /* CONFIG PAGE */
+    .config-section { margin: 0 16px 20px; }
+    .config-title { font-size: 13px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .config-item {
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .config-item-left { display: flex; align-items: center; gap: 12px; }
+    .config-item-icon { font-size: 20px; }
+    .config-item-info { }
+    .config-item-info strong { font-size: 14px; display: block; }
+    .config-item-info span { font-size: 12px; color: var(--text-muted); }
+
+    /* TOGGLE */
+    .toggle {
+      width: 44px; height: 24px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 99px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+      border: none;
+    }
+    .toggle.on { background: var(--primary); }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      background: white;
+      border-radius: 50%;
+      top: 3px; left: 3px;
+      transition: transform 0.2s;
+    }
+    .toggle.on::after { transform: translateX(20px); }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+
+    /* CHIP FILTER */
+    .chip-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; scrollbar-width: none; }
+    .chip-row::-webkit-scrollbar { display: none; }
+    .chip {
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 99px;
+      padding: 6px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      color: var(--text-muted);
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .chip.active { background: rgba(233,30,140,0.2); border-color: var(--primary); color: var(--primary); }
+
+    /* PROJECT CARD */
+    .project-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .project-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+    .project-name { font-size: 15px; font-weight: 600; }
+    .project-status { font-size: 11px; padding: 3px 10px; border-radius: 99px; }
+    .status-active { background: rgba(34,197,94,0.15); color: var(--success); }
+    .status-paused { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .status-done { background: rgba(124,58,237,0.15); color: var(--secondary); }
+    .project-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; }
+    .project-progress-bar { background: rgba(255,255,255,0.08); border-radius: 99px; height: 4px; margin-bottom: 6px; }
+    .project-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--primary), var(--secondary)); }
+    .project-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
+
+    /* CATEGORY ICONS */
+    .cat-icon { font-size: 20px; }
+
+    /* INPUT COLOR */
+    input[type="color"] {
+      height: 44px;
+      padding: 4px;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.1);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOAST NOTIFICATION -->
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toast-icon">🔔</div>
+  <div class="toast-body">
+    <div class="toast-title" id="toast-title">Título</div>
+    <div class="toast-msg" id="toast-msg">Mensagem</div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="header-top">
+    <div style="display:flex;gap:12px;align-items:center">
+      <div class="header-avatar">✨</div>
+      <div class="header-info">
+        <h1 id="header-greeting">Oi, Bia! 💕</h1>
+        <p id="header-date">Carregando...</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" onclick="showPage('config')" title="Configurações">⚙️</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL OVERLAY -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOnOverlay(event)">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<!-- PAGE: HOME -->
+<div class="page active" id="page-home">
+  <!-- BIA MESSAGE -->
+  <div class="bia-msg" id="bia-greeting">
+    <div class="bia-face">🤖</div>
+    <div class="bia-text" id="bia-greeting-text">Bom dia! ☀️ Vamos arrasar hoje?</div>
+  </div>
+
+  <!-- DAILY PROGRESS -->
+  <div class="daily-card" id="daily-progress">
+    <h3>Progresso de Hoje</h3>
+    <div class="progress-text" id="daily-progress-text">0% concluído</div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="daily-progress-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-subtitle" id="daily-progress-sub">0 de 0 tarefas de hoje</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row" id="home-stats">
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-number" id="stat-tasks">0</div>
+      <div class="stat-label">Tarefas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🎯</div>
+      <div class="stat-number" id="stat-goals">0</div>
+      <div class="stat-label">Metas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📅</div>
+      <div class="stat-number" id="stat-events">0</div>
+      <div class="stat-label">Eventos</div>
+    </div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="quick-actions">
+    <button class="quick-btn" onclick="openModal('task')">
+      <div class="qb-icon">✅</div>
+      <div class="qb-label">Nova Tarefa</div>
+    </button>
+    <button class="quick-btn" onclick="openModal('event')">
+      <div class="qb-icon">📅</div>
+      <div class="qb-label">Evento</div>
+    </button>
+    <button class="quick-btn" onclick="openModal('expense')">
+      <div class="qb-icon">💸</div>
+      <div class="qb-label">Gasto</div>
+    </button>
+    <button class="quick-btn" onclick="openModal('goal')">
+      <div class="qb-icon">🎯</div>
+      <div class="qb-label">Meta</div>
+    </button>
+  </div>
+
+  <!-- UPCOMING EVENTS -->
+  <div class="section" id="home-events-section">
+    <div class="section-header">
+      <span class="section-title">📅 Próximos Eventos</span>
+      <button class="btn-add" onclick="showPage('agenda')">Ver todos</button>
+    </div>
+    <div id="home-events-list"><div class="empty-state"><div class="es-icon">📅</div><p>Nenhum evento hoje</p></div></div>
+  </div>
+
+  <!-- TODAY TASKS -->
+  <div class="section" id="home-tasks-section">
+    <div class="section-header">
+      <span class="section-title">✅ Tarefas de Hoje</span>
+      <button class="btn-add" onclick="showPage('tarefas')">Ver todas</button>
+    </div>
+    <div id="home-tasks-list"><div class="empty-state"><div class="es-icon">✅</div><p>Nenhuma tarefa para hoje</p></div></div>
+  </div>
+</div>
+
+<!-- PAGE: TAREFAS -->
+<div class="page" id="page-tarefas">
+  <div class="section" style="margin-top:16px">
+    <div class="section-header">
+      <span class="section-title">✅ Tarefas</span>
+      <button class="btn-add" onclick="openModal('task')">+ Nova</button>
+    </div>
+    <div class="chip-row" id="task-filter-chips">
+      <div class="chip active" data-filter="all" onclick="filterTasks('all',this)">Todas</div>
+      <div class="chip" data-filter="pendente" onclick="filterTasks('pendente',this)">Pendentes</div>
+      <div class="chip" data-filter="concluida" onclick="filterTasks('concluida',this)">Concluídas</div>
+      <div class="chip" data-filter="alta" onclick="filterTasks('alta',this)">🔴 Alta</div>
+      <div class="chip" data-filter="media" onclick="filterTasks('media',this)">🟡 Média</div>
+      <div class="chip" data-filter="baixa" onclick="filterTasks('baixa',this)">🟢 Baixa</div>
+    </div>
+    <div id="tasks-list"></div>
+  </div>
+</div>
+
+<!-- PAGE: AGENDA -->
+<div class="page" id="page-agenda">
+  <div class="section" style="margin-top:16px">
+    <div class="section-header">
+      <span class="section-title">📅 Agenda</span>
+      <button class="btn-add" onclick="openModal('event')">+ Novo</button>
+    </div>
+    <div id="agenda-list"></div>
+  </div>
+</div>
+
+<!-- PAGE: METAS -->
+<div class="page" id="page-metas">
+  <div class="section" style="margin-top:16px">
+    <div class="section-header">
+      <span class="section-title">🎯 Metas & Projetos</span>
+      <button class="btn-add" onclick="openModal('goal')">+ Meta</button>
+    </div>
+    <div class="chip-row">
+      <div class="chip active" onclick="filterMetas('goals',this)">Metas 🎯</div>
+      <div class="chip" onclick="filterMetas('projects',this)">Projetos 🚀</div>
+    </div>
+    <div id="goals-list"></div>
+    <div id="projects-list" style="display:none">
+      <div class="section-header" style="margin-top:8px">
+        <span></span>
+        <button class="btn-add" onclick="openModal('project')">+ Projeto</button>
+      </div>
+      <div id="projects-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: GASTOS -->
+<div class="page" id="page-gastos">
+  <div style="margin-top:16px">
+    <div class="section-header" style="margin: 0 16px 12px">
+      <span class="section-title">💰 Finanças do Mês</span>
+      <button class="btn-add" onclick="openModal('expense')">+ Lançar</button>
+    </div>
+
+    <!-- MONTH SUMMARY -->
+    <div class="month-summary" id="month-summary">
+      <div class="month-row">
+        <div class="month-item"><div class="mi-label">Receitas</div><div class="mi-value mi-income" id="total-income">R$ 0</div></div>
+        <div class="month-item"><div class="mi-label">Gastos</div><div class="mi-value mi-expense" id="total-expense">R$ 0</div></div>
+        <div class="month-item"><div class="mi-label">Saldo</div><div class="mi-value mi-balance" id="total-balance">R$ 0</div></div>
+      </div>
+      <div class="savings-bar-wrap">
+        <div class="savings-bar-label"><span>💚 Economias</span><span id="savings-pct">0%</span></div>
+        <div class="savings-bar"><div class="savings-bar-fill" id="savings-bar-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- BIA FINANCE TIP -->
+    <div class="bia-msg" id="bia-finance-tip" style="margin-top:0">
+      <div class="bia-face">💡</div>
+      <div class="bia-text" id="bia-finance-text">Adicione seus gastos e receitas para eu te ajudar a economizar! 💕</div>
+    </div>
+
+    <div class="section">
+      <div class="chip-row" id="expense-filter-chips">
+        <div class="chip active" data-filter="all" onclick="filterExpenses('all',this)">Todos</div>
+        <div class="chip" data-filter="Alimentação" onclick="filterExpenses('Alimentação',this)">🍕 Alimentação</div>
+        <div class="chip" data-filter="Transporte" onclick="filterExpenses('Transporte',this)">🚗 Transporte</div>
+        <div class="chip" data-filter="Saúde" onclick="filterExpenses('Saúde',this)">💊 Saúde</div>
+        <div class="chip" data-filter="Lazer" onclick="filterExpenses('Lazer',this)">🎉 Lazer</div>
+        <div class="chip" data-filter="Receita" onclick="filterExpenses('Receita',this)">💚 Receitas</div>
+        <div class="chip" data-filter="Outros" onclick="filterExpenses('Outros',this)">📦 Outros</div>
+      </div>
+      <div id="expenses-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: CONFIG -->
+<div class="page" id="page-config">
+  <div style="margin-top:16px">
+    <div class="config-section">
+      <div class="config-title">🔌 Banco de Dados</div>
+      <div class="config-item">
+        <div class="config-item-left">
+          <div class="config-item-icon">🗄️</div>
+          <div class="config-item-info">
+            <strong>Supabase URL</strong>
+            <span>URL do projeto</span>
+          </div>
+        </div>
+      </div>
+      <input class="form-input" id="config-supabase-url" placeholder="https://xxx.supabase.co" style="margin-bottom:8px" />
+      <div class="config-item">
+        <div class="config-item-left">
+          <div class="config-item-icon">🔑</div>
+          <div class="config-item-info">
+            <strong>Supabase Anon Key</strong>
+            <span>Chave pública</span>
+          </div>
+        </div>
+      </div>
+      <input class="form-input" id="config-supabase-key" placeholder="eyJhbGci..." style="margin-bottom:8px" type="password" />
+      <button class="btn-primary" onclick="saveSupabaseConfig()">💾 Salvar e Conectar</button>
+      <div id="supabase-status" style="margin-top:8px;font-size:13px;text-align:center"></div>
+    </div>
+
+    <div class="config-section">
+      <div class="config-title">👤 Perfil</div>
+      <div class="config-item">
+        <div class="config-item-left">
+          <div class="config-item-icon">💕</div>
+          <div class="config-item-info">
+            <strong>Seu nome</strong>
+            <span id="config-name-display">Não definido</span>
+          </div>
+        </div>
+        <button class="btn-add" onclick="editName()">Editar</button>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="config-title">🔔 Notificações</div>
+      <div class="config-item">
+        <div class="config-item-left">
+          <div class="config-item-icon">📳</div>
+          <div class="config-item-info">
+            <strong>Push Notifications</strong>
+            <span>Alertas no celular</span>
+          </div>
+        </div>
+        <button class="toggle" id="toggle-notif" onclick="toggleNotifications(this)"></button>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="config-title">📊 Dados</div>
+      <div class="config-item" style="cursor:pointer" onclick="exportData()">
+        <div class="config-item-left">
+          <div class="config-item-icon">📤</div>
+          <div class="config-item-info">
+            <strong>Exportar Dados</strong>
+            <span>Baixar como JSON</span>
+          </div>
+        </div>
+        <span>›</span>
+      </div>
+      <div class="config-item" style="cursor:pointer" onclick="if(confirm('Tem certeza? Isso apaga TUDO!'))clearAllData()">
+        <div class="config-item-left">
+          <div class="config-item-icon">🗑️</div>
+          <div class="config-item-info">
+            <strong style="color:var(--danger)">Limpar Dados</strong>
+            <span>Apaga tudo localmente</span>
+          </div>
+        </div>
+        <span>›</span>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div style="text-align:center;color:var(--text-muted);font-size:12px;padding:10px">
+        <div style="font-size:24px;margin-bottom:4px">✨</div>
+        <div>Bia v1.0 — Sua assistente pessoal</div>
+        <div>Feita com 💕 pra você</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-home" onclick="showPage('home')">
+    <div class="nav-icon">🏠</div>
+    <div class="nav-label">Início</div>
+    <div class="nav-dot"></div>
+  </button>
+  <button class="nav-btn" id="nav-tarefas" onclick="showPage('tarefas')">
+    <div class="nav-icon">✅</div>
+    <div class="nav-label">Tarefas</div>
+    <div class="nav-dot"></div>
+  </button>
+  <button class="nav-btn" id="nav-agenda" onclick="showPage('agenda')">
+    <div class="nav-icon">📅</div>
+    <div class="nav-label">Agenda</div>
+    <div class="nav-dot"></div>
+  </button>
+  <button class="nav-btn" id="nav-metas" onclick="showPage('metas')">
+    <div class="nav-icon">🎯</div>
+    <div class="nav-label">Metas</div>
+    <div class="nav-dot"></div>
+  </button>
+  <button class="nav-btn" id="nav-gastos" onclick="showPage('gastos')">
+    <div class="nav-icon">💰</div>
+    <div class="nav-label">Gastos</div>
+    <div class="nav-dot"></div>
+  </button>
+</nav>
+
+<script>
+// ===== SUPABASE CONFIG =====
+let supabase = null;
+let SUPABASE_URL = localStorage.getItem('bia_supabase_url') || '';
+let SUPABASE_KEY = localStorage.getItem('bia_supabase_key') || '';
+
+function initSupabase() {
+  if (SUPABASE_URL && SUPABASE_KEY) {
+    try {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      return true;
+    } catch(e) { return false; }
+  }
+  return false;
+}
+
+async function saveSupabaseConfig() {
+  SUPABASE_URL = document.getElementById('config-supabase-url').value.trim();
+  SUPABASE_KEY = document.getElementById('config-supabase-key').value.trim();
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    showToast('⚠️', 'Atenção', 'Preencha URL e Chave do Supabase');
+    return;
+  }
+  localStorage.setItem('bia_supabase_url', SUPABASE_URL);
+  localStorage.setItem('bia_supabase_key', SUPABASE_KEY);
+  if (initSupabase()) {
+    await setupSupabaseTables();
+    document.getElementById('supabase-status').innerHTML = '<span style="color:var(--success)">✅ Conectado! Dados sincronizando...</span>';
+    showToast('✅', 'Conectado!', 'Supabase configurado com sucesso');
+    loadAllData();
+  }
+}
+
+async function setupSupabaseTables() {
+  if (!supabase) return;
+  // Tables are created via Supabase dashboard SQL editor
+  // Just test connection
+  try {
+    await supabase.from('bia_tasks').select('id').limit(1);
+  } catch(e) { console.log('Table check:', e.message); }
+}
+
+// ===== LOCAL STORAGE DB =====
+function getDB() {
+  return {
+    tasks: JSON.parse(localStorage.getItem('bia_tasks') || '[]'),
+    events: JSON.parse(localStorage.getItem('bia_events') || '[]'),
+    expenses: JSON.parse(localStorage.getItem('bia_expenses') || '[]'),
+    goals: JSON.parse(localStorage.getItem('bia_goals') || '[]'),
+    projects: JSON.parse(localStorage.getItem('bia_projects') || '[]'),
+    settings: JSON.parse(localStorage.getItem('bia_settings') || '{"name":"","notif":false}')
+  };
+}
+
+function saveDB(key, data) {
+  localStorage.setItem('bia_' + key, JSON.stringify(data));
+  if (supabase) syncToSupabase(key, data);
+}
+
+async function syncToSupabase(key, data) {
+  if (!supabase) return;
+  try {
+    // Upsert all records
+    for (const item of data) {
+      await supabase.from('bia_' + key).upsert(item, { onConflict: 'id' });
+    }
+  } catch(e) { console.log('Sync error:', e); }
+}
+
+async function loadAllData() {
+  if (!supabase) return;
+  const tables = ['tasks', 'events', 'expenses', 'goals', 'projects'];
+  for (const t of tables) {
+    try {
+      const { data } = await supabase.from('bia_' + t).select('*');
+      if (data && data.length > 0) {
+        localStorage.setItem('bia_' + t, JSON.stringify(data));
+      }
+    } catch(e) { console.log('Load error:', e); }
+  }
+  renderAll();
+}
+
+// ===== NAVIGATION =====
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  const nb = document.getElementById('nav-' + name);
+  if (nb) nb.classList.add('active');
+  renderAll();
+}
+
+// ===== MODAL =====
+let currentModal = null;
+let editingId = null;
+
+function openModal(type, id = null) {
+  currentModal = type;
+  editingId = id;
+  const overlay = document.getElementById('modal-overlay');
+  const content = document.getElementById('modal-content');
+  content.innerHTML = getModalContent(type, id);
+  overlay.classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  currentModal = null; editingId = null;
+}
+
+function closeModalOnOverlay(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+function getModalContent(type, id) {
+  const db = getDB();
+  let item = null;
+  if (id) {
+    if (type === 'task') item = db.tasks.find(t => t.id === id);
+    if (type === 'event') item = db.events.find(e => e.id === id);
+    if (type === 'expense') item = db.expenses.find(e => e.id === id);
+    if (type === 'goal') item = db.goals.find(g => g.id === id);
+    if (type === 'project') item = db.projects.find(p => p.id === id);
+  }
+
+  if (type === 'task') return `
+    <div class="modal-handle"></div>
+    <h2>${id ? '✏️ Editar Tarefa' : '✅ Nova Tarefa'}</h2>
+    <div class="form-group">
+      <label class="form-label">Título</label>
+      <input class="form-input" id="t-title" placeholder="O que precisa fazer?" value="${item?.title||''}" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descrição</label>
+      <textarea class="form-textarea" id="t-desc" placeholder="Detalhes opcionais...">${item?.desc||''}</textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Data</label>
+        <input class="form-input" type="date" id="t-date" value="${item?.date||today()}" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hora</label>
+        <input class="form-input" type="time" id="t-time" value="${item?.time||''}" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Prioridade</label>
+        <select class="form-select" id="t-priority">
+          <option value="baixa" ${item?.priority==='baixa'?'selected':''}>🟢 Baixa</option>
+          <option value="media" ${!item||item?.priority==='media'?'selected':''}>🟡 Média</option>
+          <option value="alta" ${item?.priority==='alta'?'selected':''}>🔴 Alta</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Alerta</label>
+        <select class="form-select" id="t-alert">
+          <option value="">Sem alerta</option>
+          <option value="0" ${item?.alert==='0'?'selected':''}>Na hora</option>
+          <option value="5" ${item?.alert==='5'?'selected':''}>5 min antes</option>
+          <option value="15" ${item?.alert==='15'?'selected':''}>15 min antes</option>
+          <option value="30" ${item?.alert==='30'?'selected':''}>30 min antes</option>
+          <option value="60" ${item?.alert==='60'?'selected':''}>1h antes</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Categoria</label>
+      <input class="form-input" id="t-cat" placeholder="ex: pessoal, trabalho, saúde..." value="${item?.category||''}" />
+    </div>
+    <button class="btn-primary" onclick="saveTask()">💾 ${id ? 'Atualizar' : 'Salvar Tarefa'}</button>
+    <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+  `;
+
+  if (type === 'event') return `
+    <div class="modal-handle"></div>
+    <h2>${id ? '✏️ Editar Evento' : '📅 Novo Evento'}</h2>
+    <div class="form-group">
+      <label class="form-label">Título</label>
+      <input class="form-input" id="e-title" placeholder="Nome do evento" value="${item?.title||''}" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descrição</label>
+      <textarea class="form-textarea" id="e-desc" placeholder="Detalhes...">${item?.desc||''}</textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Data</label>
+        <input class="form-input" type="date" id="e-date" value="${item?.date||today()}" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Hora</label>
+        <input class="form-input" type="time" id="e-time" value="${item?.time||''}" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Fim</label>
+        <input class="form-input" type="time" id="e-endtime" value="${item?.endtime||''}" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Local</label>
+        <input class="form-input" id="e-local" placeholder="Onde?" value="${item?.local||''}" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Alerta</label>
+      <select class="form-select" id="e-alert">
+        <option value="">Sem alerta</option>
+        <option value="0">Na hora</option>
+        <option value="5">5 min antes</option>
+        <option value="15">15 min antes</option>
+        <option value="30">30 min antes</option>
+        <option value="60">1h antes</option>
+        <option value="1440">1 dia antes</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="saveEvent()">💾 ${id ? 'Atualizar' : 'Salvar Evento'}</button>
+    <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+  `;
+
+  if (type === 'expense') return `
+    <div class="modal-handle"></div>
+    <h2>${id ? '✏️ Editar Lançamento' : '💸 Novo Lançamento'}</h2>
+    <div class="form-group">
+      <label class="form-label">Descrição</label>
+      <input class="form-input" id="ex-name" placeholder="O que foi?" value="${item?.name||''}" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Valor (R$)</label>
+        <input class="form-input" type="number" id="ex-amount" placeholder="0,00" step="0.01" value="${item?.amount||''}" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <select class="form-select" id="ex-type">
+          <option value="gasto" ${!item||item?.type==='gasto'?'selected':''}>💸 Gasto</option>
+          <option value="receita" ${item?.type==='receita'?'selected':''}>💚 Receita</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Categoria</label>
+        <select class="form-select" id="ex-cat">
+          <option value="Alimentação" ${item?.category==='Alimentação'?'selected':''}>🍕 Alimentação</option>
+          <option value="Transporte" ${item?.category==='Transporte'?'selected':''}>🚗 Transporte</option>
+          <option value="Saúde" ${item?.category==='Saúde'?'selected':''}>💊 Saúde</option>
+          <option value="Lazer" ${item?.category==='Lazer'?'selected':''}>🎉 Lazer</option>
+          <option value="Moradia" ${item?.category==='Moradia'?'selected':''}>🏠 Moradia</option>
+          <option value="Vestuário" ${item?.category==='Vestuário'?'selected':''}>👗 Vestuário</option>
+          <option value="Educação" ${item?.category==='Educação'?'selected':''}>📚 Educação</option>
+          <option value="Receita" ${item?.category==='Receita'?'selected':''}>💰 Receita</option>
+          <option value="Outros" ${item?.category==='Outros'?'selected':''}>📦 Outros</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Data</label>
+        <input class="form-input" type="date" id="ex-date" value="${item?.date||today()}" />
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveExpense()">💾 ${id ? 'Atualizar' : 'Salvar'}</button>
+    <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+  `;
+
+  if (type === 'goal') return `
+    <div class="modal-handle"></div>
+    <h2>${id ? '✏️ Editar Meta' : '🎯 Nova Meta'}</h2>
+    <div class="form-group">
+      <label class="form-label">Nome da Meta</label>
+      <input class="form-input" id="g-name" placeholder="Ex: Comprar tênis novo" value="${item?.name||''}" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descrição</label>
+      <textarea class="form-textarea" id="g-desc" placeholder="Por que essa meta importa?">${item?.desc||''}</textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Valor Atual</label>
+        <input class="form-input" type="number" id="g-current" placeholder="0" value="${item?.current||0}" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Meta Total</label>
+        <input class="form-input" type="number" id="g-target" placeholder="100" value="${item?.target||''}" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Prazo</label>
+        <input class="form-input" type="date" id="g-deadline" value="${item?.deadline||''}" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <select class="form-select" id="g-type">
+          <option value="financeiro" ${!item||item?.gtype==='financeiro'?'selected':''}>💰 Financeiro</option>
+          <option value="pessoal" ${item?.gtype==='pessoal'?'selected':''}>🌟 Pessoal</option>
+          <option value="saúde" ${item?.gtype==='saúde'?'selected':''}>💪 Saúde</option>
+          <option value="aprendizado" ${item?.gtype==='aprendizado'?'selected':''}>📚 Aprendizado</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveGoal()">💾 ${id ? 'Atualizar' : 'Salvar Meta'}</button>
+    <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+  `;
+
+  if (type === 'project') return `
+    <div class="modal-handle"></div>
+    <h2>${id ? '✏️ Editar Projeto' : '🚀 Novo Projeto'}</h2>
+    <div class="form-group">
+      <label class="form-label">Nome do Projeto</label>
+      <input class="form-input" id="p-name" placeholder="Nome do projeto" value="${item?.name||''}" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descrição</label>
+      <textarea class="form-textarea" id="p-desc" placeholder="Do que se trata?">${item?.desc||''}</textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Progresso (%)</label>
+        <input class="form-input" type="number" id="p-progress" min="0" max="100" value="${item?.progress||0}" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="p-status">
+          <option value="ativo" ${!item||item?.status==='ativo'?'selected':''}>✅ Ativo</option>
+          <option value="pausado" ${item?.status==='pausado'?'selected':''}>⏸️ Pausado</option>
+          <option value="concluido" ${item?.status==='concluido'?'selected':''}>🏆 Concluído</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Início</label>
+        <input class="form-input" type="date" id="p-start" value="${item?.start||today()}" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Prazo</label>
+        <input class="form-input" type="date" id="p-end" value="${item?.end||''}" />
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveProject()">💾 ${id ? 'Atualizar' : 'Salvar Projeto'}</button>
+    <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+  `;
+
+  return '<div class="modal-handle"></div><p>Modal não encontrado</p>';
+}
+
+// ===== HELPERS =====
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  const dt = new Date(d + 'T12:00:00');
+  return dt.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
+}
+
+function formatCurrency(v) {
+  return 'R$ ' + parseFloat(v||0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function catIcon(cat) {
+  const map = {
+    'Alimentação':'🍕', 'Transporte':'🚗', 'Saúde':'💊', 'Lazer':'🎉',
+    'Moradia':'🏠', 'Vestuário':'👗', 'Educação':'📚', 'Receita':'💰',
+    'Outros':'📦', 'pessoal':'🌟', 'trabalho':'💼', 'saúde':'💪', 'aprendizado':'📚'
+  };
+  return map[cat] || '📦';
+}
+
+// ===== SAVE FUNCTIONS =====
+function saveTask() {
+  const title = document.getElementById('t-title').value.trim();
+  if (!title) { showToast('⚠️','Atenção','Adicione um título'); return; }
+  const db = getDB();
+  const task = {
+    id: editingId || uid(),
+    title,
+    desc: document.getElementById('t-desc').value,
+    date: document.getElementById('t-date').value,
+    time: document.getElementById('t-time').value,
+    priority: document.getElementById('t-priority').value,
+    alert: document.getElementById('t-alert').value,
+    category: document.getElementById('t-cat').value,
+    status: 'pendente',
+    created: new Date().toISOString()
+  };
+  if (editingId) {
+    const idx = db.tasks.findIndex(t => t.id === editingId);
+    task.status = db.tasks[idx]?.status || 'pendente';
+    db.tasks[idx] = task;
+  } else {
+    db.tasks.push(task);
+  }
+  saveDB('tasks', db.tasks);
+  if (task.time && task.alert !== '') scheduleNotification(task);
+  closeModal();
+  renderAll();
+  showToast('✅', 'Tarefa salva!', biaReact('task'));
+}
+
+function saveEvent() {
+  const title = document.getElementById('e-title').value.trim();
+  if (!title) { showToast('⚠️','Atenção','Adicione um título'); return; }
+  const db = getDB();
+  const event = {
+    id: editingId || uid(),
+    title,
+    desc: document.getElementById('e-desc').value,
+    date: document.getElementById('e-date').value,
+    time: document.getElementById('e-time').value,
+    endtime: document.getElementById('e-endtime').value,
+    local: document.getElementById('e-local').value,
+    alert: document.getElementById('e-alert').value,
+    created: new Date().toISOString()
+  };
+  if (editingId) {
+    db.events[db.events.findIndex(e => e.id === editingId)] = event;
+  } else {
+    db.events.push(event);
+  }
+  saveDB('events', db.events);
+  if (event.time && event.alert !== '') scheduleNotification(event);
+  closeModal(); renderAll();
+  showToast('📅', 'Evento salvo!', 'Adicionado à sua agenda 📅');
+}
+
+function saveExpense() {
+  const name = document.getElementById('ex-name').value.trim();
+  const amount = parseFloat(document.getElementById('ex-amount').value);
+  if (!name || !amount) { showToast('⚠️','Atenção','Preencha descrição e valor'); return; }
+  const db = getDB();
+  const expense = {
+    id: editingId || uid(),
+    name,
+    amount,
+    type: document.getElementById('ex-type').value,
+    category: document.getElementById('ex-cat').value,
+    date: document.getElementById('ex-date').value,
+    created: new Date().toISOString()
+  };
+  if (editingId) {
+    db.expenses[db.expenses.findIndex(e => e.id === editingId)] = expense;
+  } else {
+    db.expenses.push(expense);
+  }
+  saveDB('expenses', db.expenses);
+  closeModal(); renderAll();
+  showToast('💰', 'Lançado!', biaFinanceTip(db.expenses));
+}
+
+function saveGoal() {
+  const name = document.getElementById('g-name').value.trim();
+  if (!name) { showToast('⚠️','Atenção','Dê um nome à sua meta'); return; }
+  const db = getDB();
+  const goal = {
+    id: editingId || uid(),
+    name,
+    desc: document.getElementById('g-desc').value,
+    current: parseFloat(document.getElementById('g-current').value)||0,
+    target: parseFloat(document.getElementById('g-target').value)||100,
+    deadline: document.getElementById('g-deadline').value,
+    gtype: document.getElementById('g-type').value,
+    created: new Date().toISOString()
+  };
+  if (editingId) {
+    db.goals[db.goals.findIndex(g => g.id === editingId)] = goal;
+  } else {
+    db.goals.push(goal);
+  }
+  saveDB('goals', db.goals);
+  closeModal(); renderAll();
+  showToast('🎯', 'Meta criada!', 'Você consegue! Vai com tudo 💪');
+}
+
+function saveProject() {
+  const name = document.getElementById('p-name').value.trim();
+  if (!name) { showToast('⚠️','Atenção','Dê um nome ao projeto'); return; }
+  const db = getDB();
+  const project = {
+    id: editingId || uid(),
+    name,
+    desc: document.getElementById('p-desc').value,
+    progress: parseInt(document.getElementById('p-progress').value)||0,
+    status: document.getElementById('p-status').value,
+    start: document.getElementById('p-start').value,
+    end: document.getElementById('p-end').value,
+    created: new Date().toISOString()
+  };
+  if (editingId) {
+    db.projects[db.projects.findIndex(p => p.id === editingId)] = project;
+  } else {
+    db.projects.push(project);
+  }
+  saveDB('projects', db.projects);
+  closeModal(); renderAll();
+  showToast('🚀', 'Projeto salvo!', 'Rumo ao sucesso! 🚀');
+}
+
+// ===== DELETE =====
+function deleteItem(type, id) {
+  if (!confirm('Apagar este item?')) return;
+  const db = getDB();
+  db[type] = db[type].filter(i => i.id !== id);
+  saveDB(type, db[type]);
+  renderAll();
+  showToast('🗑️','Removido','Item apagado');
+}
+
+function toggleTask(id) {
+  const db = getDB();
+  const task = db.tasks.find(t => t.id === id);
+  if (task) {
+    task.status = task.status === 'concluida' ? 'pendente' : 'concluida';
+    saveDB('tasks', db.tasks);
+    renderAll();
+    if (task.status === 'concluida') showToast('🎉', 'Arrasou!', biaReact('done'));
+  }
+}
+
+// ===== RENDER =====
+function renderAll() {
+  renderHome();
+  renderTasks();
+  renderAgenda();
+  renderMetas();
+  renderGastos();
+  updateConfig();
+}
+
+function renderHome() {
+  const db = getDB();
+  const todayStr = today();
+
+  // Today tasks
+  const todayTasks = db.tasks.filter(t => t.date === todayStr);
+  const doneTasks = todayTasks.filter(t => t.status === 'concluida');
+  const pct = todayTasks.length > 0 ? Math.round((doneTasks.length / todayTasks.length) * 100) : 0;
+
+  document.getElementById('daily-progress-fill').style.width = pct + '%';
+  document.getElementById('daily-progress-text').textContent = pct + '% concluído';
+  document.getElementById('daily-progress-sub').textContent = `${doneTasks.length} de ${todayTasks.length} tarefas de hoje`;
+
+  document.getElementById('stat-tasks').textContent = db.tasks.filter(t => t.status === 'pendente').length;
+  document.getElementById('stat-goals').textContent = db.goals.length;
+  document.getElementById('stat-events').textContent = db.events.filter(e => e.date >= todayStr).length;
+
+  // Home tasks
+  const homeTasks = document.getElementById('home-tasks-list');
+  const nextTasks = db.tasks.filter(t => t.date === todayStr && t.status === 'pendente').slice(0,3);
+  homeTasks.innerHTML = nextTasks.length ? nextTasks.map(renderTaskItem).join('') :
+    '<div class="empty-state"><div class="es-icon">🎉</div><p>Tudo em dia por hoje!</p></div>';
+
+  // Home events
+  const homeEvents = document.getElementById('home-events-list');
+  const nextEvents = db.events.filter(e => e.date >= todayStr).sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time)).slice(0,3);
+  homeEvents.innerHTML = nextEvents.length ? nextEvents.map(renderEventItem).join('') :
+    '<div class="empty-state"><div class="es-icon">📅</div><p>Nenhum evento próximo</p></div>';
+
+  // Bia greeting
+  updateBiaGreeting(pct, todayTasks.length);
+}
+
+function updateBiaGreeting(pct, total) {
+  const h = new Date().getHours();
+  const settings = JSON.parse(localStorage.getItem('bia_settings')||'{}');
+  const name = settings.name ? `, ${settings.name}` : '';
+  let msg = '';
+  if (h < 12) msg = `Bom dia${name}! ☀️ Dia de arrasar!`;
+  else if (h < 18) msg = `Boa tarde${name}! 😊 Como está indo?`;
+  else msg = `Boa noite${name}! 🌙 Hora de relaxar também!`;
+
+  if (pct === 100 && total > 0) msg = `Você zerou as tarefas de hoje${name}! 🎉🎉🎉 Demais!`;
+  else if (pct >= 70) msg = `Quase lá${name}! 💪 ${pct}% feito — você é fera!`;
+  else if (pct >= 30) msg = `Foco${name}! 🎯 Falta pouco pra terminar seu dia!`;
+  else if (total > 0) msg = `Ei${name} 😅 você ainda tem ${total} tarefa${total>1?'s':''} hoje...`;
+
+  document.getElementById('bia-greeting-text').innerHTML = msg;
+}
+
+function renderTaskItem(t) {
+  return `
+    <div class="task-item">
+      <div class="task-check ${t.status==='concluida'?'done':''}" onclick="toggleTask('${t.id}')">
+        ${t.status==='concluida'?'✓':''}
+      </div>
+      <div class="task-body">
+        <div class="task-title ${t.status==='concluida'?'done':''}">${t.title}</div>
+        <div class="task-meta">
+          ${t.date ? `<span>📅 ${formatDate(t.date)}</span>` : ''}
+          ${t.time ? `<span>⏰ ${t.time}</span>` : ''}
+          ${t.category ? `<span>${catIcon(t.category)} ${t.category}</span>` : ''}
+          <span class="task-priority priority-${t.priority}">${t.priority}</span>
+        </div>
+      </div>
+      <div class="task-actions">
+        <button class="task-action-btn" onclick="openModal('task','${t.id}')">✏️</button>
+        <button class="task-action-btn" onclick="deleteItem('tasks','${t.id}')">🗑️</button>
+      </div>
+    </div>`;
+}
+
+function renderEventItem(e) {
+  return `
+    <div class="event-item">
+      <div class="event-time">
+        <div class="time">${e.time||'📅'}</div>
+        <div>${formatDate(e.date)}</div>
+      </div>
+      <div class="event-body">
+        <div class="event-title">${e.title}</div>
+        ${e.desc?`<div class="event-desc">${e.desc}</div>`:''}
+        ${e.local?`<div class="event-desc">📍 ${e.local}</div>`:''}
+        ${e.alert!==''?`<div class="event-alert">🔔 Alerta ${e.alert==='0'?'na hora':e.alert+' min antes'}</div>`:''}
+      </div>
+      <div class="task-actions">
+        <button class="task-action-btn" onclick="openModal('event','${e.id}')">✏️</button>
+        <button class="task-action-btn" onclick="deleteItem('events','${e.id}')">🗑️</button>
+      </div>
+    </div>`;
+}
+
+// Filters
+let taskFilter = 'all';
+let expenseFilter = 'all';
+
+function filterTasks(f, el) {
+  taskFilter = f;
+  document.querySelectorAll('#task-filter-chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderTasks();
+}
+
+function filterExpenses(f, el) {
+  expenseFilter = f;
+  document.querySelectorAll('#expense-filter-chips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderGastos();
+}
+
+let metasView = 'goals';
+function filterMetas(view, el) {
+  metasView = view;
+  document.querySelectorAll('#page-metas .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('goals-list').style.display = view === 'goals' ? 'block' : 'none';
+  document.getElementById('projects-list').style.display = view === 'projects' ? 'block' : 'none';
+  renderMetas();
+}
+
+function renderTasks() {
+  const db = getDB();
+  let tasks = [...db.tasks].sort((a,b) => {
+    const po = {alta:0,media:1,baixa:2};
+    return (po[a.priority]||1) - (po[b.priority]||1) || a.date?.localeCompare(b.date||'');
+  });
+  if (taskFilter === 'pendente') tasks = tasks.filter(t => t.status === 'pendente');
+  else if (taskFilter === 'concluida') tasks = tasks.filter(t => t.status === 'concluida');
+  else if (['alta','media','baixa'].includes(taskFilter)) tasks = tasks.filter(t => t.priority === taskFilter);
+
+  const list = document.getElementById('tasks-list');
+  list.innerHTML = tasks.length ? tasks.map(renderTaskItem).join('') :
+    '<div class="empty-state"><div class="es-icon">✅</div><p>Nenhuma tarefa aqui</p></div>';
+}
+
+function renderAgenda() {
+  const db = getDB();
+  const events = [...db.events].sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+  const todayStr = today();
+  const upcoming = events.filter(e => e.date >= todayStr);
+  const past = events.filter(e => e.date < todayStr);
+
+  let html = '';
+  if (upcoming.length) {
+    html += '<div style="font-size:12px;color:var(--text-muted);font-weight:600;text-transform:uppercase;margin-bottom:8px">Próximos</div>';
+    html += upcoming.map(renderEventItem).join('');
+  }
+  if (past.length) {
+    html += '<div style="font-size:12px;color:var(--text-muted);font-weight:600;text-transform:uppercase;margin:16px 0 8px">Passados</div>';
+    html += past.map(renderEventItem).join('');
+  }
+  document.getElementById('agenda-list').innerHTML = html || '<div class="empty-state"><div class="es-icon">📅</div><p>Sua agenda está limpa</p></div>';
+}
+
+function renderMetas() {
+  const db = getDB();
+  // Goals
+  const goalsList = document.getElementById('goals-list');
+  goalsList.innerHTML = db.goals.length ? db.goals.map(g => {
+    const pct = g.target > 0 ? Math.min(100, Math.round((g.current / g.target) * 100)) : 0;
+    return `
+      <div class="goal-item">
+        <div class="goal-header">
+          <div class="goal-name">${catIcon(g.gtype)} ${g.name}</div>
+          <div class="goal-percent">${pct}%</div>
+        </div>
+        <div class="goal-bar"><div class="goal-fill" style="width:${pct}%"></div></div>
+        <div class="goal-values">
+          <span>${formatCurrency(g.current)} / ${formatCurrency(g.target)}</span>
+          ${g.deadline?`<span>🗓️ ${formatDate(g.deadline)}</span>`:''}
+        </div>
+        ${g.desc?`<div style="font-size:12px;color:var(--text-muted);margin-top:6px">${g.desc}</div>`:''}
+        <div style="display:flex;gap:6px;margin-top:10px">
+          <button class="btn-add" onclick="openModal('goal','${g.id}')" style="flex:1">✏️ Editar</button>
+          <button class="btn-add" onclick="deleteItem('goals','${g.id}')" style="background:var(--danger);flex:0.4">🗑️</button>
+        </div>
+      </div>`;
+  }).join('') : '<div class="empty-state"><div class="es-icon">🎯</div><p>Nenhuma meta criada ainda</p></div>';
+
+  // Projects
+  const projContent = document.getElementById('projects-content');
+  projContent.innerHTML = db.projects.length ? db.projects.map(p => `
+    <div class="project-card">
+      <div class="project-header">
+        <div class="project-name">🚀 ${p.name}</div>
+        <div class="project-status status-${p.status}">${p.status}</div>
+      </div>
+      ${p.desc?`<div class="project-desc">${p.desc}</div>`:''}
+      <div class="project-progress-bar"><div class="project-fill" style="width:${p.progress}%"></div></div>
+      <div class="project-meta">
+        <span>${p.progress}% completo</span>
+        <span>${p.end?'🗓️ '+formatDate(p.end):''}</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <button class="btn-add" onclick="openModal('project','${p.id}')" style="flex:1">✏️ Editar</button>
+        <button class="btn-add" onclick="deleteItem('projects','${p.id}')" style="background:var(--danger);flex:0.4">🗑️</button>
+      </div>
+    </div>`).join('') : '<div class="empty-state"><div class="es-icon">🚀</div><p>Nenhum projeto ainda</p></div>';
+}
+
+function renderGastos() {
+  const db = getDB();
+  const thisMonth = new Date().toISOString().substr(0,7);
+  const monthExpenses = db.expenses.filter(e => e.date && e.date.startsWith(thisMonth));
+
+  const income = monthExpenses.filter(e => e.type === 'receita').reduce((s,e) => s+e.amount, 0);
+  const expense = monthExpenses.filter(e => e.type === 'gasto').reduce((s,e) => s+e.amount, 0);
+  const balance = income - expense;
+  const savingsPct = income > 0 ? Math.round((balance / income) * 100) : 0;
+
+  document.getElementById('total-income').textContent = formatCurrency(income);
+  document.getElementById('total-expense').textContent = formatCurrency(expense);
+  document.getElementById('total-balance').textContent = formatCurrency(balance);
+  document.getElementById('savings-pct').textContent = savingsPct + '%';
+  document.getElementById('savings-bar-fill').style.width = Math.max(0, savingsPct) + '%';
+
+  // Bia finance tip
+  document.getElementById('bia-finance-text').textContent = biaFinanceTip(monthExpenses);
+
+  let expenses = [...monthExpenses].sort((a,b) => b.date?.localeCompare(a.date||''));
+  if (expenseFilter !== 'all') expenses = expenses.filter(e => e.category === expenseFilter || (expenseFilter === 'Receita' && e.type === 'receita'));
+
+  const list = document.getElementById('expenses-list');
+  list.innerHTML = expenses.length ? expenses.map(e => `
+    <div class="expense-item">
+      <div class="expense-icon">${catIcon(e.category)}</div>
+      <div class="expense-body">
+        <div class="expense-name">${e.name}</div>
+        <div class="expense-cat">${e.category} • ${formatDate(e.date)}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <div class="expense-amount ${e.type==='receita'?'income':''}">${e.type==='receita'?'+':'-'} ${formatCurrency(e.amount)}</div>
+        <div style="display:flex;gap:4px">
+          <button class="task-action-btn" onclick="openModal('expense','${e.id}')">✏️</button>
+          <button class="task-action-btn" onclick="deleteItem('expenses','${e.id}')">🗑️</button>
+        </div>
+      </div>
+    </div>`).join('') :
+    '<div class="empty-state"><div class="es-icon">💰</div><p>Nenhum lançamento este mês</p></div>';
+}
+
+function updateConfig() {
+  const settings = JSON.parse(localStorage.getItem('bia_settings')||'{}');
+  document.getElementById('config-name-display').textContent = settings.name || 'Não definido';
+  if (SUPABASE_URL) document.getElementById('config-supabase-url').value = SUPABASE_URL;
+  if (SUPABASE_KEY) document.getElementById('config-supabase-key').value = SUPABASE_KEY;
+  if (SUPABASE_URL && SUPABASE_KEY) {
+    document.getElementById('supabase-status').innerHTML = '<span style="color:var(--success)">✅ Supabase configurado</span>';
+  }
+}
+
+// ===== BIA MESSAGES =====
+function biaReact(type) {
+  const msgs = {
+    task: ['Anotado! 📝 Você consegue!', 'Boa! Mais um pra lista 💪', 'Perfeito! Organização é tudo ✨'],
+    done: ['ARRASOU! 🎉🎉', 'Isso aí! Continua assim 💪', 'Demais! Você é incrível! 🌟'],
+    morning: ['Bom dia! ☀️ Dia de arrasar!', 'Dia novo, chances novas! 🌅', 'Levanta e vai ser fera hoje! 💫']
+  };
+  const arr = msgs[type] || msgs.task;
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function biaFinanceTip(expenses) {
+  const expense = expenses.filter(e => e.type === 'gasto').reduce((s,e) => s+e.amount, 0);
+  const income = expenses.filter(e => e.type === 'receita').reduce((s,e) => s+e.amount, 0);
+  if (income === 0) return 'Adicione seus gastos e receitas para eu te ajudar a economizar! 💕';
+  const pct = income > 0 ? ((expense/income)*100).toFixed(0) : 0;
+  if (pct > 90) return `Ei 😅 você gastou ${pct}% do que ganhou esse mês. Hora de respirar...`;
+  if (pct > 70) return `Atenção 🔔 ${pct}% do orçamento usado. Cuidado com os extras!`;
+  if (pct > 50) return `Você usou ${pct}% do orçamento. Controlado! Continua assim 👍`;
+  return `Arrasando! 🎉 Só ${pct}% gasto. Você tá economizando bem 💚`;
+}
+
+// ===== NOTIFICATIONS =====
+let sw = null;
+
+async function registerSW() {
+  if ('serviceWorker' in navigator) {
+    try {
+      sw = await navigator.serviceWorker.register('/sw.js');
+      console.log('SW registrado');
+    } catch(e) { console.log('SW erro:', e); }
+  }
+}
+
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) return false;
+  const perm = await Notification.requestPermission();
+  return perm === 'granted';
+}
+
+async function toggleNotifications(btn) {
+  btn.classList.toggle('on');
+  const settings = JSON.parse(localStorage.getItem('bia_settings')||'{}');
+  if (btn.classList.contains('on')) {
+    const granted = await requestNotificationPermission();
+    if (granted) {
+      settings.notif = true;
+      showToast('🔔','Notificações','Você vai receber lembretes da Bia! 💕');
+    } else {
+      btn.classList.remove('on');
+      showToast('⚠️','Bloqueado','Permita notificações nas configurações do celular');
+    }
+  } else {
+    settings.notif = false;
+  }
+  localStorage.setItem('bia_settings', JSON.stringify(settings));
+}
+
+function scheduleNotification(item) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!item.time || item.alert === '') return;
+
+  const [h, m] = item.time.split(':').map(Number);
+  const dt = new Date(item.date + 'T' + item.time);
+  const alertMs = parseInt(item.alert || 0) * 60 * 1000;
+  const notifTime = dt.getTime() - alertMs;
+  const delay = notifTime - Date.now();
+
+  if (delay > 0 && delay < 86400000 * 7) { // max 7 days ahead
+    const msgs = [
+      `⏰ "${item.title}" ${item.alert==='0'?'agora!':'em '+item.alert+' min'}`,
+      `Ei 😅 você tem "${item.title}" ${item.alert==='0'?'agora':'daqui a pouco'}!`,
+      `Hora de sair! 🚀 "${item.title}" está chegando!`,
+      `Foco! 💪 "${item.title}" ${item.alert==='0'?'agora':'logo logo'}`
+    ];
+    const body = msgs[Math.floor(Math.random() * msgs.length)];
+
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SCHEDULE_NOTIFICATION',
+        id: item.id,
+        title: '✨ Bia lembra você',
+        body,
+        delay
+      });
+    } else {
+      setTimeout(() => {
+        new Notification('✨ Bia lembra você', { body, icon: '/icon-192.png' });
+      }, delay);
+    }
+  }
+}
+
+// Reschedule all pending alerts on load
+function rescheduleAlerts() {
+  const db = getDB();
+  const todayStr = today();
+  [...db.tasks, ...db.events]
+    .filter(i => i.date >= todayStr && i.time && i.alert !== '' && i.status !== 'concluida')
+    .forEach(scheduleNotification);
+}
+
+// ===== CONFIG FUNCTIONS =====
+function editName() {
+  const name = prompt('Qual é o seu nome?', JSON.parse(localStorage.getItem('bia_settings')||'{}').name || '');
+  if (name !== null) {
+    const settings = JSON.parse(localStorage.getItem('bia_settings')||'{}');
+    settings.name = name;
+    localStorage.setItem('bia_settings', JSON.stringify(settings));
+    renderAll();
+    showToast('💕','Oi, '+name+'!','Prazer em te conhecer! 😊');
+  }
+}
+
+function exportData() {
+  const db = getDB();
+  const blob = new Blob([JSON.stringify(db, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'bia-backup-' + today() + '.json';
+  a.click();
+  showToast('📤','Exportado!','Seus dados foram salvos');
+}
+
+function clearAllData() {
+  ['tasks','events','expenses','goals','projects'].forEach(k => localStorage.removeItem('bia_'+k));
+  renderAll();
+  showToast('🗑️','Dados limpos','Tudo foi apagado');
+}
+
+// ===== TOAST =====
+let toastTimer = null;
+function showToast(icon, title, msg) {
+  document.getElementById('toast-icon').textContent = icon;
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-msg').textContent = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ===== HEADER DATE =====
+function updateHeaderDate() {
+  const now = new Date();
+  const opts = { weekday: 'long', day: '2-digit', month: 'long' };
+  document.getElementById('header-date').textContent = now.toLocaleDateString('pt-BR', opts);
+}
+
+// ===== INIT =====
+window.addEventListener('DOMContentLoaded', async () => {
+  updateHeaderDate();
+  setInterval(updateHeaderDate, 60000);
+  await registerSW();
+  initSupabase();
+  if (SUPABASE_URL && SUPABASE_KEY) await loadAllData();
+  renderAll();
+  rescheduleAlerts();
+
+  // Check notif permission
+  if (Notification.permission === 'granted') {
+    document.getElementById('toggle-notif').classList.add('on');
+  }
+});
+</script>
+</body>
+</html>
