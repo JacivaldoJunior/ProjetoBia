@@ -441,6 +441,80 @@
       border: none; border-radius: 10px;
       padding: 8px 10px; font-size: 13px; cursor: pointer;
     }
+    
+    /* ===== DIETA ===== */
+    .dieta-macro-bar {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 10px;
+      margin: 0 14px 14px;
+    }
+    .macro-card {
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      padding: 12px 8px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .macro-icon { font-size: 20px; margin-bottom: 4px; }
+    .macro-val  { font-size: 18px; font-weight: 700; color: var(--primary); }
+    .macro-lbl  { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+    .macro-bar-wrap { height: 5px; background: rgba(255,255,255,0.1); border-radius: 99px; margin-top: 6px; overflow:hidden; }
+    .macro-bar-fill { height: 100%; border-radius: 99px; transition: width 0.5s; }
+
+    .refeicao-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      margin: 0 14px 10px;
+      border: 1px solid rgba(255,255,255,0.06);
+      overflow: hidden;
+    }
+    .refeicao-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .refeicao-titulo { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; }
+    .refeicao-kcal { font-size: 12px; color: var(--text-muted); }
+    .refeicao-itens { padding: 6px 0; }
+    .refeicao-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 14px;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .refeicao-item:last-child { border-bottom: none; }
+    .item-nome { flex: 1; }
+    .item-kcal { font-size: 12px; color: var(--text-muted); margin-right: 10px; }
+    .item-del { background: none; border: none; color: var(--danger); font-size: 15px; cursor: pointer; padding: 2px 4px; }
+    .btn-add-refeicao {
+      width: calc(100% - 28px);
+      margin: 0 14px 14px;
+      padding: 12px;
+      background: rgba(233,30,140,0.1);
+      border: 1px dashed rgba(233,30,140,0.4);
+      border-radius: var(--radius-sm);
+      color: var(--primary);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      touch-action: manipulation;
+    }
+    .btn-add-refeicao:active { background: rgba(233,30,140,0.2); }
+
+    .dieta-meta-bar {
+      margin: 0 14px 14px;
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .dieta-meta-row { display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; }
+    .dieta-meta-row span:first-child { color: var(--text-muted); }
+    .dieta-meta-row span:last-child { font-weight: 700; }
+    .dieta-prog { height: 8px; background: rgba(255,255,255,0.1); border-radius:99px; overflow:hidden; }
+    .dieta-prog-fill { height:100%; border-radius:99px; transition: width 0.5s; background: linear-gradient(90deg, var(--primary), var(--secondary)); }
     </style>
 </head>
 <body>
@@ -675,10 +749,59 @@
 </div>
 
 <!-- BOTTOM NAV -->
+<!-- ===== PAGE: DIETA ===== -->
+<div class="page" id="page-dieta">
+  <div style="margin-top:14px">
+
+    <div class="section-header" style="margin:0 14px 10px">
+      <span class="section-title">🥗 Dieta de Hoje</span>
+      <button class="btn-add" data-action="modal-refeicao">+ Refeição</button>
+    </div>
+
+    <!-- Meta calórica -->
+    <div class="dieta-meta-bar">
+      <div class="dieta-meta-row">
+        <span>Meta calórica</span>
+        <span id="dieta-kcal-resumo">0 / 2000 kcal</span>
+      </div>
+      <div class="dieta-prog"><div class="dieta-prog-fill" id="dieta-kcal-bar" style="width:0%"></div></div>
+    </div>
+
+    <!-- Macros -->
+    <div class="dieta-macro-bar">
+      <div class="macro-card">
+        <div class="macro-icon">🍞</div>
+        <div class="macro-val" id="macro-carb">0g</div>
+        <div class="macro-lbl">Carboidratos</div>
+        <div class="macro-bar-wrap"><div class="macro-bar-fill" id="bar-carb" style="width:0%;background:#f59e0b"></div></div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-icon">🥩</div>
+        <div class="macro-val" id="macro-prot">0g</div>
+        <div class="macro-lbl">Proteínas</div>
+        <div class="macro-bar-wrap"><div class="macro-bar-fill" id="bar-prot" style="width:0%;background:#22c55e"></div></div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-icon">🥑</div>
+        <div class="macro-val" id="macro-gord">0g</div>
+        <div class="macro-lbl">Gorduras</div>
+        <div class="macro-bar-wrap"><div class="macro-bar-fill" id="bar-gord" style="width:0%;background:#e91e8c"></div></div>
+      </div>
+    </div>
+
+    <!-- Refeições do dia -->
+    <div id="dieta-refeicoes-list"></div>
+
+    <button class="btn-add-refeicao" data-action="modal-refeicao">＋ Adicionar refeição</button>
+
+  </div>
+</div>
+
 <nav class="bottom-nav">
   <button class="nav-btn active" data-nav="home"><div class="nav-icon">🏠</div><div class="nav-label">Início</div><div class="nav-dot"></div></button>
   <button class="nav-btn" data-nav="tarefas"><div class="nav-icon">✅</div><div class="nav-label">Tarefas</div><div class="nav-dot"></div></button>
   <button class="nav-btn" data-nav="agenda"><div class="nav-icon">📅</div><div class="nav-label">Agenda</div><div class="nav-dot"></div></button>
+  <button class="nav-btn" data-nav="dieta"><div class="nav-icon">🥗</div><div class="nav-label">Dieta</div><div class="nav-dot"></div></button>
   <button class="nav-btn" data-nav="metas"><div class="nav-icon">🎯</div><div class="nav-label">Metas</div><div class="nav-dot"></div></button>
   <button class="nav-btn" data-nav="gastos"><div class="nav-icon">💰</div><div class="nav-label">Gastos</div><div class="nav-dot"></div></button>
 </nav>
@@ -767,7 +890,7 @@ function renderPage(page) {
 }
 
 function renderAll() {
-  renderHome(); renderTasks(); renderAgenda(); renderMetas(); renderGastos(); renderConfig();
+  renderHome(); renderTasks(); renderAgenda(); renderMetas(); renderGastos(); renderConfig(); renderDieta();
 }
 
 // ===== MODAL =====
@@ -794,6 +917,7 @@ function handleModalSave() {
   if (editType==='task')    saveTask();
   if (editType==='event')   saveEvent();
   if (editType==='expense') saveExpense();
+  if (editType==='refeicao') saveRefeicao();
   if (editType==='goal')    saveGoal();
   if (editType==='project') saveProject();
 }
@@ -927,6 +1051,33 @@ function buildModal(type, id) {
       </div>`;
   }
 
+  if (type==='refeicao') {
+    inner = `
+      <h2>${id?'✏️ Editar':'🥗 Nova'} Refeição</h2>
+      <div class="form-group"><label class="form-label">Refeição *</label>
+        <select class="form-select" id="f-refeicao-tipo">
+          <option value="Café da manhã" ${v('tipo')==='Café da manhã'?'selected':''}>☀️ Café da manhã</option>
+          <option value="Lanche da manhã" ${v('tipo')==='Lanche da manhã'?'selected':''}>🍎 Lanche da manhã</option>
+          <option value="Almoço" ${v('tipo')==='Almoço'?'selected':''}>🍽️ Almoço</option>
+          <option value="Lanche da tarde" ${v('tipo')==='Lanche da tarde'?'selected':''}>🥪 Lanche da tarde</option>
+          <option value="Jantar" ${v('tipo')==='Jantar'?'selected':''}>🌙 Jantar</option>
+          <option value="Ceia" ${v('tipo')==='Ceia'?'selected':''}>🌛 Ceia</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Alimento *</label><input class="form-input" id="f-alimento" placeholder="Ex: Frango grelhado, arroz..." value="${v('alimento')}"/></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Quantidade</label><input class="form-input" id="f-quantidade" placeholder="Ex: 150g" value="${v('quantidade')}"/></div>
+        <div class="form-group"><label class="form-label">Calorias (kcal)</label><input class="form-input" type="number" id="f-kcal" placeholder="0" value="${v('kcal',0)}"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Proteínas (g)</label><input class="form-input" type="number" id="f-prot" placeholder="0" value="${v('prot',0)}"/></div>
+        <div class="form-group"><label class="form-label">Carboidratos (g)</label><input class="form-input" type="number" id="f-carb" placeholder="0" value="${v('carb',0)}"/></div>
+        <div class="form-group"><label class="form-label">Gorduras (g)</label><input class="form-input" type="number" id="f-gord" placeholder="0" value="${v('gord',0)}"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Data</label><input class="form-input" type="date" id="f-data-refeicao" value="${v('data',today())}"/></div>
+    `;
+  }
+
   return `<div class="modal-handle"></div>${inner}
     <button class="btn-primary" id="modal-save">💾 ${id?'Atualizar':'Salvar'}</button>
     <button class="btn-secondary" id="modal-cancel">Cancelar</button>`;
@@ -985,6 +1136,30 @@ function saveExpense() {
   DB.set('expenses', expenses);
   closeModal(); renderAll();
   toast('💰','Lançado!',biaFinanceTip(DB.get('expenses')));
+}
+
+function saveRefeicao() {
+  const alimento = g('f-alimento');
+  if (!alimento) { toast('⚠️','Atenção','Informe o alimento'); return; }
+  const tipo = document.getElementById('f-refeicao-tipo')?.value || 'Almoço';
+  const quantidade = g('f-quantidade') || '';
+  const kcal = parseInt(document.getElementById('f-kcal')?.value||'0')||0;
+  const prot = parseFloat(document.getElementById('f-prot')?.value||'0')||0;
+  const carb = parseFloat(document.getElementById('f-carb')?.value||'0')||0;
+  const gord = parseFloat(document.getElementById('f-gord')?.value||'0')||0;
+  const data = g('f-data-refeicao') || today();
+  const lista = DB.get('refeicoes');
+  const item = { id:editId||uid(), alimento, tipo, quantidade, kcal, prot, carb, gord, data };
+  if (editId) {
+    const idx = lista.findIndex(x=>x.id===editId);
+    if (idx>=0) lista[idx]=item; else lista.push(item);
+  } else {
+    lista.push(item);
+  }
+  DB.set('refeicoes', lista);
+  closeModal();
+  renderDieta();
+  toast('🥗','Refeição','Registrada! 💪');
 }
 
 function saveGoal() {
@@ -1228,6 +1403,91 @@ function renderGastos() {
         </div>
       </div>`).join('')
     : emptyState('💰','Nenhum lançamento este mês');
+}
+
+// ===== RENDER DIETA =====
+function renderDieta() {
+  const hoje = today();
+  const lista = DB.get('refeicoes').filter(r => r.data === hoje);
+  const META_KCAL = parseInt(DB.getSetting('meta_kcal', '2000'));
+
+  // Totais
+  const totKcal = lista.reduce((s,r)=>s+(r.kcal||0),0);
+  const totProt = lista.reduce((s,r)=>s+(r.prot||0),0);
+  const totCarb = lista.reduce((s,r)=>s+(r.carb||0),0);
+  const totGord = lista.reduce((s,r)=>s+(r.gord||0),0);
+
+  // Atualizar macros
+  const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  const setW = (id,w) => { const el=document.getElementById(id); if(el) el.style.width=Math.min(w,100)+'%'; };
+
+  set('macro-carb', totCarb+'g');
+  set('macro-prot', totProt+'g');
+  set('macro-gord', totGord+'g');
+  set('dieta-kcal-resumo', totKcal+' / '+META_KCAL+' kcal');
+  setW('dieta-kcal-bar', (totKcal/META_KCAL)*100);
+  setW('bar-carb', (totCarb/250)*100);
+  setW('bar-prot', (totProt/150)*100);
+  setW('bar-gord', (totGord/65)*100);
+
+  // Agrupar por tipo de refeição
+  const container = document.getElementById('dieta-refeicoes-list');
+  if (!container) return;
+
+  const ordem = ['Café da manhã','Lanche da manhã','Almoço','Lanche da tarde','Jantar','Ceia'];
+  const grupos = {};
+  lista.forEach(r => {
+    if (!grupos[r.tipo]) grupos[r.tipo] = [];
+    grupos[r.tipo].push(r);
+  });
+
+  const emojiMap = {
+    'Café da manhã':'☀️','Lanche da manhã':'🍎','Almoço':'🍽️',
+    'Lanche da tarde':'🥪','Jantar':'🌙','Ceia':'🌛'
+  };
+
+  if (lista.length === 0) {
+    container.innerHTML = `<div style="text-align:center;padding:30px 14px;color:var(--text-muted)">
+      <div style="font-size:40px;margin-bottom:8px">🥗</div>
+      <div style="font-size:14px">Nenhuma refeição registrada hoje</div>
+      <div style="font-size:12px;margin-top:4px">Toque em "+ Refeição" para começar</div>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = ordem
+    .filter(tipo => grupos[tipo])
+    .map(tipo => {
+      const items = grupos[tipo];
+      const totalTipo = items.reduce((s,r)=>s+(r.kcal||0),0);
+      return `<div class="refeicao-card">
+        <div class="refeicao-header">
+          <div class="refeicao-titulo">${emojiMap[tipo]||'🍴'} ${tipo}</div>
+          <div class="refeicao-kcal">${totalTipo} kcal</div>
+        </div>
+        <div class="refeicao-itens">
+          ${items.map(r => `
+            <div class="refeicao-item">
+              <div class="item-nome">${r.alimento}${r.quantidade?' <small style="color:var(--text-muted)">(${r.quantidade})</small>':''}</div>
+              <div class="item-kcal">${r.kcal||0} kcal</div>
+              <button class="item-del" data-del-refeicao="${r.id}">🗑</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+    }).join('');
+
+  // Bind delete buttons
+  container.querySelectorAll('[data-del-refeicao]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.delRefeicao;
+      if (!confirm('Remover este alimento?')) return;
+      const nova = DB.get('refeicoes').filter(r=>r.id!==id);
+      DB.set('refeicoes', nova);
+      renderDieta();
+    });
+  });
 }
 
 // ===== RENDER CONFIG =====
